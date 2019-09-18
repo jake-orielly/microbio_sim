@@ -101,6 +101,9 @@ function newEntity(obj) {
     let curr = {x:obj.x,y:obj.y,val:obj.val}
     let next;
     if (curr.val == 1) {
+        curr.hunger = 0;
+        curr.maxReproCooldown = 50;
+        curr.reproCooldown = curr.maxReproCooldown;
         curr.func = function(){
             if (!this.goal)
                 this.goal = 'food';
@@ -108,8 +111,14 @@ function newEntity(obj) {
                 this.currentGoal = this.findClosest(this.goal);
             next = this.pathFind(this.currentGoal)
             this.move(next);
-            if (this.x == this.currentGoal.x && this.y == this.currentGoal.y)
+            if (this.x == this.currentGoal.x && this.y == this.currentGoal.y) {
                 this.currentGoal = undefined;
+                this.hunger = 0;
+                this.reproduce();
+            }
+            this.hunger++;
+            if (this.reproCooldown)
+                this.reproCooldown--;
         }
         curr.findClosest = function(type) {
             type = 2;
@@ -133,9 +142,14 @@ function newEntity(obj) {
                 return {x:0, y:(yDiff/Math.abs(yDiff)) * 1};
         }
         curr.move = function(obj) {
-            this.x += obj.x;
-            this.y += obj.y;
-            board[this.x][this.y] = 0;
+            if (board[this.x + obj.x][this.y + obj.y] != 2) {
+                this.x += obj.x;
+                this.y += obj.y;
+                board[this.x][this.y] = 0;
+            }
+        }
+        curr.reproduce = function() {
+            newEntity({x:52,y:2,val:1});
         }
     }
     board[obj.x][obj.y] = curr;
